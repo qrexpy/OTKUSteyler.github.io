@@ -1,4 +1,4 @@
- body {
+ .home {
             font-family: 'Arial', sans-serif;
             background-color: #0f0f0f;
             color: #00ff41;
@@ -10,28 +10,74 @@
             justify-content: center;
             height: 100vh;
             text-align: center;
-        }
-        header {
-            font-size: 2em;
-            margin-bottom: 30px;
-        }
+ }
+ .blog {
+            font-family: 'Arial', sans-serif;
+            background-color: #0f0f0f;
+            color: #00ff41;
+            margin: 0;
+            padding: 0;
 
-        .content {
+ }
+ header {
+         font-size: 2em;
+         margin-bottom: 30px;
+ }
+ .blog-header {
+            background-color: #111;
+            color: #00ff41;
+            text-align: center;
+            padding: 10px;
+ }
+ .content {
             max-width: 600px;
             margin: 20px;
             padding: 20px;
             background-color: rgba(15, 15, 15, 0.8);
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
-        }
-        .links a {
+ }
+ .blog-content {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: rgba(15, 15, 15, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+ }
+ .article {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: rgba(0, 255, 65, 0.1);
+ }
+ .links a {
             color: #00ff41;
             text-decoration: none;
             margin: 0 10px;
-        }
-        footer {
-            margin-top: 30px;
-            font-size: 0.8em;
+ }
+ footer {
+         margin-top: 30px;
+         color: #00ff41;
+         text-align: center;
+ }
+ .blog-footer {
+            background-color: #111;
             color: #00ff41;
             text-align: center;
-        }
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+ }
+ nav {
+      background-color: #222;
+      padding: 10px;
+      text-align: center;
+ }
+
+ nav a {
+        color: #00ff41;
+        text-decoration: none;
+        margin: 0 15px;
+ }
