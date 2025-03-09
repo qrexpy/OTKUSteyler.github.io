@@ -2,11 +2,10 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCr8wnbtkkrccn2QHkjDT4VY6mmSTBDMu8",
-  authDomain: "stoibio.firebaseapp.com",
-  projectId: "stoibio",
-  storageBucket: "stoibio.firebasestorage.app",
-  messagingSenderId: "732132267362",
+  apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
+  authDomain: "gustebook-aba1d.firebaseapp.com",
+  projectId: "gustebook-aba1d", storageBucket:"gustebook-aba1d.firebasestorage.app",
+  messagingSenderId: "282519660063",
   appId: "1:732132267362:web:7b0692476e9ed89d1dc83b",
 };
 
