@@ -1,5 +1,5 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 const firebaseConfig = {
   apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
   authDomain: "gustebook-aba1d.firebaseapp.com",
