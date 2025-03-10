@@ -12,7 +12,6 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 
 setInterval(() => {
   const cursors = document.querySelectorAll('[style*="color: #0f0;"]');
