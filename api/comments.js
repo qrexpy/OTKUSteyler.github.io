@@ -14,13 +14,13 @@ import {
 
 // Your Firebase configuration - replace with your actual Firebase project details
 const firebaseConfig = {
-  apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
-  authDomain: "gustebook-aba1d.firebaseapp.com",
-  projectId: "gustebook-aba1d",
-  storageBucket: "gustebook-aba1d.firebasestorage.app",
-  messagingSenderId: "282519660063",
-  appId: "1:282519660063:web:d0ebdb62917160d4f6d72a",
-  measurementId: "G-15H56JYDZ0"
+    apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
+    authDomain: "gustebook-aba1d.firebaseapp.com",
+    projectId: "gustebook-aba1d",
+    storageBucket: "gustebook-aba1d.firebasestorage.app",
+    messagingSenderId: "282519660063",
+    appId: "1:282519660063:web:d0ebdb62917160d4f6d72a",
+    measurementId: "G-15H56JYDZ0"
 };
 
 // Initialize Firebase
