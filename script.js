@@ -12,6 +12,7 @@ import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase
 };
 
 const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 setInterval(() => {
   const cursors = document.querySelectorAll('[style*="color: #0f0;"]');
