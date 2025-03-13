@@ -2,17 +2,19 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
-  authDomain: "gustebook-aba1d.firebaseapp.com",
-  projectId: "gustebook-aba1d",
-  storageBucket: "gustebook-aba1d.firebasestorage.app",
-  messagingSenderId: "282519660063",
-  appId: "1:282519660063:web:d0ebdb62917160d4f6d72a",
-  measurementId: "G-15H56JYDZ0"
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+  measurementId: process.env.FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+export { app, analytics };
+
 
 setInterval(() => {
   const cursors = document.querySelectorAll('[style*="color: #0f0;"]');
