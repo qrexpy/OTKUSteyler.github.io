@@ -1,21 +1,21 @@
-// Firebase Comments Module with Fixed Paths
-// This should be placed at /api/comments.js in your project
-
-// Use absolute URLs for Firebase imports to avoid path issues
+// Fixed Firebase Comments Module with proper import paths
+// Import Firebase modules using CDN URLs instead of bare specifiers
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
-  getFirestore, 
+  getFirestore,
   collection, 
   addDoc, 
   getDocs, 
   query, 
   orderBy, 
-  serverTimestamp 
+  serverTimestamp,
+  doc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Your Firebase configuration
 const firebaseConfig = {
- apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
+  apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
   authDomain: "gustebook-aba1d.firebaseapp.com",
   projectId: "gustebook-aba1d",
   storageBucket: "gustebook-aba1d.firebasestorage.app",
@@ -28,27 +28,29 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// Comments Collection Reference
+const commentsCollection = collection(db, "comments");
+
 // Function to add a new comment
 async function addComment(name, message, pageId) {
   try {
-    const commentsCollection = collection(db, "comments");
     const docRef = await addDoc(commentsCollection, {
       name: name,
       message: message,
       pageId: pageId,
       timestamp: serverTimestamp()
     });
+    console.log("Comment added with ID: ", docRef.id);
     return { success: true, id: docRef.id };
   } catch (error) {
-    console.error("Error adding comment:", error);
+    console.error("Error adding comment: ", error);
     return { success: false, error: error.message };
   }
 }
 
-// Function to get comments
+// Function to get all comments for a specific page
 async function getComments(pageId) {
   try {
-    const commentsCollection = collection(db, "comments");
     const q = query(
       commentsCollection,
       orderBy("timestamp", "desc")
@@ -72,16 +74,27 @@ async function getComments(pageId) {
     
     return comments;
   } catch (error) {
-    console.error("Error getting comments:", error);
+    console.error("Error getting comments: ", error);
     return [];
   }
 }
 
-// Function to initialize comments UI
+// Function to delete a comment (optional - for moderation)
+async function deleteComment(commentId) {
+  try {
+    await deleteDoc(doc(db, "comments", commentId));
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting comment: ", error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Function to initialize the comments section
 function initComments(containerId, pageId) {
   const container = document.getElementById(containerId);
   if (!container) {
-    console.error(`Comment container with id "${containerId}" not found`);
+    console.error("Comment container not found");
     return;
   }
   
@@ -99,7 +112,7 @@ function initComments(containerId, pageId) {
     </div>
     <div class="comments-list">
       <h3>Comments</h3>
-      <div id="comments-container">Loading comments...</div>
+      <div id="comments-container"></div>
     </div>
   `;
   
@@ -122,8 +135,6 @@ function initComments(containerId, pageId) {
         
         // Refresh comments
         await loadComments(pageId);
-      } else {
-        alert("Failed to add comment: " + result.error);
       }
     } else {
       alert("Please fill in all fields");
@@ -167,6 +178,5 @@ async function loadComments(pageId) {
   commentsContainer.innerHTML = commentsHtml;
 }
 
-// Export functions using both named and default exports for flexibility
-export { initComments, addComment, getComments };
-export default { initComments, addComment, getComments };
+// Export functions
+export { initComments, addComment, getComments, deleteComment };
