@@ -1,5 +1,4 @@
-// Fixed Firebase Comments Module with proper import paths
-// Import Firebase modules using CDN URLs instead of bare specifiers
+// Complete Fixed Comments Module with CDN imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
   getFirestore,
@@ -13,7 +12,7 @@ import {
   deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Your Firebase configuration
+// Your Firebase configuration - replace with your actual Firebase project details
 const firebaseConfig = {
   apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
   authDomain: "gustebook-aba1d.firebaseapp.com",
