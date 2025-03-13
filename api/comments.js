@@ -1,59 +1,57 @@
-import admin from "firebase-admin";
+// pages/api/comments.js
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, serverTimestamp } from "firebase/firestore";
 
-// Ensure Firebase is initialized only once
-if (!admin.apps.length) {
-    try {
-        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
-    } catch (error) {
-        console.error("🔥 Firebase Initialization Error:", error);
-    }
-}
+// Firebase configuration
+const firebaseConfig = {
+  // Your Firebase config
+};
 
-const db = admin.firestore();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    // Handle adding a comment
     try {
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-        if (req.method === "OPTIONS") {
-            return res.status(200).end(); // Preflight request response
-        }
-
-        if (req.method === "GET") {
-            const snapshot = await db.collection("comments").orderBy("createdAt", "desc").get();
-            const comments = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                createdAt: doc.data().createdAt ? doc.data().createdAt.toDate() : null,
-            }));
-            return res.status(200).json({ comments });
-        } 
-        
-        if (req.method === "POST") {
-            const { text, user } = req.body;
-
-            if (!text || !user) {
-                return res.status(400).json({ error: "❌ Missing required fields" });
-            }
-
-            const newComment = await db.collection("comments").add({
-                text,
-                user,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-
-            return res.status(201).json({ message: "✅ Comment Added", id: newComment.id });
-        } 
-        
-        return res.status(405).json({ error: "🚫 Method Not Allowed" });
-
+      const { name, message, pageId } = req.body;
+      const docRef = await addDoc(collection(db, "comments"), {
+        name,
+        message,
+        pageId,
+        timestamp: serverTimestamp()
+      });
+      
+      res.status(200).json({ success: true, id: docRef.id });
     } catch (error) {
-        console.error("🔥 Firebase Error:", error);
-        return res.status(500).json({ error: "🔥 Internal Server Error" });
+      res.status(500).json({ success: false, error: error.message });
     }
+  } else if (req.method === 'GET') {
+    // Handle getting comments
+    try {
+      const { pageId } = req.query;
+      const q = query(collection(db, "comments"), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+      
+      const comments = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.pageId === pageId) {
+          comments.push({
+            id: doc.id,
+            name: data.name,
+            message: data.message,
+            timestamp: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "Just now"
+          });
+        }
+      });
+      
+      res.status(200).json(comments);
+    } catch (error) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  } else {
+    res.status(405).json({ message: 'Method not allowed' });
+  }
 }
