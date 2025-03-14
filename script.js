@@ -1,7 +1,15 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+// Firebase initialization using CDN approach
+document.addEventListener('DOMContentLoaded', async function() {
+  try {
+    // Load Firebase from CDN dynamically
+    const firebaseApp = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+    const firebaseAnalytics = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js');
+    
+    const { initializeApp } = firebaseApp;
+    const { getAnalytics } = firebaseAnalytics;
 
-const firebaseConfig = {
+    // Firebase configuration
+    const firebaseConfig = {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: process.env.FIREBASE_AUTH_DOMAIN,
   projectId: process.env.FIREBASE_PROJECT_ID,
@@ -9,13 +17,24 @@ const firebaseConfig = {
   messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.FIREBASE_APP_ID,
   measurementId: process.env.FIREBASE_MEASUREMENT_ID
-};
+    };
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-export { app, analytics };
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    
+    // Make Firebase available globally if needed
+    window.firebaseApp = app;
+    window.firebaseAnalytics = analytics;
+    
+    console.log("Firebase initialized successfully");
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
+    // Continue with the rest of the script even if Firebase fails
+  }
+});
 
-
+// The rest of your existing script without changes
 setInterval(() => {
   const cursors = document.querySelectorAll('[style*="color: #0f0;"]');
   cursors.forEach((cursor) => {
@@ -49,55 +68,64 @@ function createGlitch() {
 
 setInterval(createGlitch, 100);
 
-const canvas = document.getElementById("starfield");
-const ctx = canvas.getContext("2d");
+// Initialize canvas only when it exists
+function initCanvas() {
+  const canvas = document.getElementById("starfield");
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext("2d");
 
-function resizeCanvas() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  window.addEventListener("resize", resizeCanvas);
+  resizeCanvas();
+
+  const stars = new Array(400).fill().map(() => ({
+    x: Math.random() * canvas.width - canvas.width / 2,
+    y: Math.random() * canvas.height - canvas.height / 2,
+    z: Math.random() * 1500,
+    speed: 1 + Math.random() * 2,
+  }));
+
+  function drawStars() {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = "white";
+
+    stars.forEach((star) => {
+      star.z -= star.speed;
+
+      if (star.z <= 0) {
+        star.z = 1500;
+        star.x = Math.random() * canvas.width - canvas.width / 2;
+        star.y = Math.random() * canvas.height - canvas.height / 2;
+      }
+
+      const scale = 100 / star.z;
+      const x = star.x * scale + canvas.width / 2;
+      const y = star.y * scale + canvas.height / 2;
+      const size = scale * 2;
+
+      if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    requestAnimationFrame(drawStars);
+  }
+
+  drawStars();
+
+  // Add performance mode variables and functions to the window object
+  window.canvasStars = stars;
+  window.canvasCtx = ctx;
 }
-
-window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
-
-const stars = new Array(400).fill().map(() => ({
-  x: Math.random() * canvas.width - canvas.width / 2,
-  y: Math.random() * canvas.height - canvas.height / 2,
-  z: Math.random() * 1500,
-  speed: 1 + Math.random() * 2,
-}));
-
-function drawStars() {
-  ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "white";
-
-  stars.forEach((star) => {
-    star.z -= star.speed;
-
-    if (star.z <= 0) {
-      star.z = 1500;
-      star.x = Math.random() * canvas.width - canvas.width / 2;
-      star.y = Math.random() * canvas.height - canvas.height / 2;
-    }
-
-    const scale = 100 / star.z;
-    const x = star.x * scale + canvas.width / 2;
-    const y = star.y * scale + canvas.height / 2;
-    const size = scale * 2;
-
-    if (x >= 0 && x <= canvas.width && y >= 0 && y <= canvas.height) {
-      ctx.beginPath();
-      ctx.arc(x, y, size, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  });
-
-  requestAnimationFrame(drawStars);
-}
-
-drawStars();
 
 async function updateStatus() {
   try {
@@ -109,15 +137,20 @@ async function updateStatus() {
     if (data.success) {
       const avatarUrl = `https://cdn.discordapp.com/avatars/${data.data.discord_user.id}/${data.data.discord_user.avatar}`;
       const avatarElement = document.getElementById("userAvatar");
-      avatarElement.src = avatarUrl;
+      if (avatarElement) avatarElement.src = avatarUrl;
 
-      document.getElementById("username").textContent = data.data.discord_user
-        .display_name
-        ? data.data.discord_user.display_name
-        : data.data.discord_user.username;
+      const usernameElement = document.getElementById("username");
+      if (usernameElement) {
+        usernameElement.textContent = data.data.discord_user.display_name
+          ? data.data.discord_user.display_name
+          : data.data.discord_user.username;
+      }
 
-      const status = data.data.discord_status;
-      document.getElementById("status").textContent = status.toUpperCase();
+      const statusElement = document.getElementById("status");
+      if (statusElement) {
+        const status = data.data.discord_status;
+        statusElement.textContent = status.toUpperCase();
+      }
 
       const statusColors = {
         online: "lime",
@@ -128,20 +161,25 @@ async function updateStatus() {
 
       document.documentElement.style.setProperty(
         "--status-color",
-        statusColors[status]
+        statusColors[data.data.discord_status]
       );
 
-      avatarElement.style.opacity = status === "offline" ? "0.5" : "1";
+      if (avatarElement) {
+        avatarElement.style.opacity = data.data.discord_status === "offline" ? "0.5" : "1";
+      }
 
       const spotifyContainer = document.getElementById("spotifyContainer");
-      if (data.data.listening_to_spotify) {
-        spotifyContainer.style.display = "block";
-        document.getElementById("spotifySong").textContent =
-          data.data.spotify.song;
-        document.getElementById("spotifyArtist").textContent =
-          data.data.spotify.artist;
-      } else {
-        spotifyContainer.style.display = "none";
+      if (spotifyContainer) {
+        if (data.data.listening_to_spotify) {
+          spotifyContainer.style.display = "block";
+          const songElement = document.getElementById("spotifySong");
+          if (songElement) songElement.textContent = data.data.spotify.song;
+          
+          const artistElement = document.getElementById("spotifyArtist");
+          if (artistElement) artistElement.textContent = data.data.spotify.artist;
+        } else {
+          spotifyContainer.style.display = "none";
+        }
       }
     }
   } catch (error) {
@@ -149,8 +187,12 @@ async function updateStatus() {
   }
 }
 
-updateStatus();
-setInterval(updateStatus, 30000);
+// Call this function only when the document is ready
+document.addEventListener('DOMContentLoaded', function() {
+  initCanvas();
+  updateStatus();
+  setInterval(updateStatus, 30000);
+});
 
 const PERFORMANCE_MODE_KEY = "performance-mode";
 
@@ -170,13 +212,10 @@ const updatePerformanceMode = () => {
     container.style.filter = isPerformanceMode
       ? "none"
       : "blur(0.5px) brightness(1.1)";
-  }
-
-  if (isPerformanceMode) {
-    document.getElementById("container").style.animation = "none";
-  } else {
-    document.getElementById("container").style.animation =
-      "chromaticMove 50ms infinite alternate";
+      
+    container.style.animation = isPerformanceMode
+      ? "none"
+      : "chromaticMove 50ms infinite alternate";
   }
 
   const bloomContainer = document.querySelector(".bloom-container");
@@ -184,13 +223,16 @@ const updatePerformanceMode = () => {
     bloomContainer.style.display = isPerformanceMode ? "none" : "block";
   }
 
-  stars.length = isPerformanceMode ? Math.min(stars.length, 200) : 400;
-
-  if (isPerformanceMode) {
-    ctx.globalAlpha = 0.4;
-    ctx.fillStyle = "#000";
-  } else {
-    ctx.globalAlpha = 1;
+  // Update stars if available
+  if (window.canvasStars && window.canvasCtx) {
+    window.canvasStars.length = isPerformanceMode ? Math.min(window.canvasStars.length, 200) : 400;
+    
+    if (isPerformanceMode) {
+      window.canvasCtx.globalAlpha = 0.4;
+      window.canvasCtx.fillStyle = "#000";
+    } else {
+      window.canvasCtx.globalAlpha = 1;
+    }
   }
 };
 
@@ -230,8 +272,11 @@ const createInitialModal = () => {
     `;
   document.body.appendChild(modal);
 
-  document.getElementById("container").style.visibility = "hidden";
-  document.getElementById("starfield").style.visibility = "hidden";
+  const container = document.getElementById("container");
+  if (container) container.style.visibility = "hidden";
+  
+  const starfield = document.getElementById("starfield");
+  if (starfield) starfield.style.visibility = "hidden";
 };
 
 window.setPerformanceMode = (enabled) => {
@@ -241,8 +286,11 @@ window.setPerformanceMode = (enabled) => {
   const modal = document.querySelector(".performance-modal");
   if (modal) modal.remove();
 
-  document.getElementById("container").style.visibility = "visible";
-  document.getElementById("starfield").style.visibility = "visible";
+  const container = document.getElementById("container");
+  if (container) container.style.visibility = "visible";
+  
+  const starfield = document.getElementById("starfield");
+  if (starfield) starfield.style.visibility = "visible";
 
   createPerformanceToggle();
   updatePerformanceMode();
@@ -250,13 +298,16 @@ window.setPerformanceMode = (enabled) => {
 
 let isPerformanceMode = localStorage.getItem(PERFORMANCE_MODE_KEY);
 
-if (isPerformanceMode === null) {
-  createInitialModal();
-} else {
-  isPerformanceMode = isPerformanceMode === "true";
-  createPerformanceToggle();
-  updatePerformanceMode();
-}
+// Initialize performance mode
+document.addEventListener('DOMContentLoaded', function() {
+  if (isPerformanceMode === null) {
+    createInitialModal();
+  } else {
+    isPerformanceMode = isPerformanceMode === "true";
+    createPerformanceToggle();
+    updatePerformanceMode();
+  }
+});
 
 // Comments system implementation
 class CommentsUI {
@@ -386,112 +437,4 @@ class CommentsUI {
       minutes === 1 ? "> WAIT 1 MINUTE" : `> WAIT ${minutes} MINUTES`;
   }
 
-  updateRateLimitState({ isLimited, remainingMinutes }) {
-    if (this.rateLimitTimer) {
-      clearInterval(this.rateLimitTimer);
-      this.rateLimitTimer = null;
-    }
-
-    if (isLimited) {
-      this.setSubmitState(true);
-      this.updateButtonText(remainingMinutes);
-
-      // Update the remaining time every minute
-      let minutes = remainingMinutes;
-      this.rateLimitTimer = setInterval(() => {
-        minutes--;
-        if (minutes <= 0) {
-          clearInterval(this.rateLimitTimer);
-          this.rateLimitTimer = null;
-          this.setSubmitState(false);
-        } else {
-          this.updateButtonText(minutes);
-        }
-      }, 60000);
-    } else {
-      this.setSubmitState(false);
-    }
-  }
-
-  updateVisitorCount(count) {
-    if (this.visitorCounter) {
-      this.visitorCounter.textContent = `Visitors: ${count || "..."}`;
-    }
-  }
-
-  clearForm() {
-    if (this.nameInput) this.nameInput.value = "";
-    if (this.textInput) this.textInput.value = "";
-    this.clearError();
-  }
-
-  clearError() {
-    const error = document.querySelector(".error-message");
-    if (error) error.remove();
-  }
-
-  showError(message, autoHide = true) {
-    this.clearError();
-    if (!this.form) return;
-
-    const errorDiv = document.createElement("div");
-    errorDiv.className = "error-message";
-    errorDiv.style.cssText = `
-            color: #ff0000;
-            margin-top: 10px;
-            padding: 5px;
-            border: 1px solid #ff0000;
-        `;
-    errorDiv.textContent = message;
-
-    this.form.appendChild(errorDiv);
-
-    if (autoHide) {
-      setTimeout(() => this.clearError(), 5000);
-    }
-  }
-
-  renderComments(comments) {
-    if (!this.commentsList) return;
-
-    this.commentsList.innerHTML = comments.length
-      ? ""
-      : '<div class="comment-item">No comments yet...</div>';
-
-    comments.reverse().forEach((comment) => {
-      const div = document.createElement("div");
-      div.className = "comment-item";
-      div.innerHTML = `
-                <div class="comment-header">
-                    <span>> USER: </span>
-                    <span class="comment-name">${this.escapeHtml(
-                      comment.name
-                    )}</span>
-                </div>
-                <pre class="comment-text">${this.escapeHtml(comment.text)}</pre>
-                <div class="comment-timestamp">
-                    ${new Date(comment.timestamp).toLocaleString()}
-                </div>
-            `;
-      this.commentsList.appendChild(div);
-    });
-
-    this.commentsList.scrollTop = this.commentsList.scrollHeight;
-  }
-
-  escapeHtml(text) {
-    if (!text) return "";
-    return text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
-  }
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => new CommentsUI());
-} else {
-  new CommentsUI();
-}
+  updateRateLimitState({ isLimited, remain
