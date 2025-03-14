@@ -1,28 +1,53 @@
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+// Discord Status API integration
+const discordUserID = "554071670143451176"; // Replace with your actual Discord user ID
+let discordStatusData = null;
 
+// Firebase configuration - Replace with your actual Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
-  authDomain: "gustebook-aba1d.firebaseapp.com",
-  projectId: "gustebook-aba1d",
-  storageBucket: "gustebook-aba1d.firebasestorage.app",
-  messagingSenderId: "282519660063",
-  appId: "1:282519660063:web:d0ebdb62917160d4f6d72a",
-  measurementId: "G-15H56JYDZ0"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 // Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const commentsCollection = db.collection("comments");
-
-// DOM Elements
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize Firebase only if the SDK is loaded
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+    initializeComments();
+  } else {
+    console.error("Firebase SDK not loaded. Make sure to include it in your HTML.");
+  }
+
+  // Load Discord status
+  loadDiscordStatus();
+  
+  // Set up a socket connection for real-time Discord status updates
+  setupDiscordSocket();
+
+  // Handle theme toggle
+  setupThemeToggle();
+});
+
+// Initialize comments system
+function initializeComments() {
+  const db = firebase.firestore();
+  const commentsCollection = db.collection("comments");
   const commentForm = document.getElementById('comment-form');
   const commentText = document.getElementById('comment-text');
   const commentFile = document.getElementById('comment-file');
   const commentThread = document.getElementById('comment-thread');
   const errorMessage = document.getElementById('error-message');
+
+  // Only proceed if the comments elements exist
+  if (!commentThread) {
+    // Create comment section if it doesn't exist
+    createCommentSection();
+    return;
+  }
 
   // Load existing comments
   loadComments();
@@ -45,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Handle file upload if present
         let imageUrl = null;
         
-        if (commentFile.files.length > 0) {
+        if (commentFile && commentFile.files.length > 0) {
           const file = commentFile.files[0];
           
           // Validate file type
@@ -73,14 +98,15 @@ document.addEventListener('DOMContentLoaded', function() {
           imageUrl: imageUrl,
           anonymousId: anonymousId,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          replies: []
+          replies: [],
+          profilePicture: getRandomProfilePicture()
         };
         
         await commentsCollection.add(commentData);
         
         // Reset form
         commentText.value = '';
-        commentFile.value = '';
+        if (commentFile) commentFile.value = '';
         
         // Reload comments
         loadComments();
@@ -91,51 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  
-  // Reply to comment function
-  window.replyToComment = async function(parentId) {
-    const replyText = document.getElementById(`reply-text-${parentId}`).value;
-    
-    if (!replyText.trim()) {
-      showError("Reply text cannot be empty");
-      return;
-    }
-    
-    try {
-      const anonymousId = generateAnonymousId();
-      
-      // Get parent comment
-      const parentDoc = await commentsCollection.doc(parentId).get();
-      
-      if (parentDoc.exists) {
-        const parentData = parentDoc.data();
-        const replies = parentData.replies || [];
-        
-        // Add new reply
-        replies.push({
-          text: replyText.trim(),
-          anonymousId: anonymousId,
-          timestamp: new Date().toISOString()
-        });
-        
-        // Update parent document
-        await commentsCollection.doc(parentId).update({ replies: replies });
-        
-        // Reload comments
-        loadComments();
-        
-        // Clear reply field
-        document.getElementById(`reply-text-${parentId}`).value = '';
-        
-      } else {
-        showError("Comment not found");
-      }
-    } catch (error) {
-      console.error("Error adding reply:", error);
-      showError("Failed to post reply. Please try again.");
-    }
-  };
-  
+
   // Load comments from Firebase
   function loadComments() {
     if (!commentThread) return;
@@ -161,16 +143,56 @@ document.addEventListener('DOMContentLoaded', function() {
       commentThread.innerHTML = '<p>Error loading comments. Please refresh the page.</p>';
     });
   }
-  
+
+  // Create comment section if it doesn't exist
+  function createCommentSection() {
+    const main = document.querySelector('main');
+    if (!main) return;
+    
+    const commentSection = document.createElement('div');
+    commentSection.className = 'comment-section';
+    commentSection.innerHTML = `
+      <h2>Comments</h2>
+      
+      <div id="error-message"></div>
+      
+      <form id="comment-form">
+        <textarea id="comment-text" placeholder="Write your comment here..."></textarea>
+        <div class="form-footer">
+          <input type="file" id="comment-file" accept="image/*">
+          <button type="submit">Post Comment</button>
+        </div>
+      </form>
+      
+      <div id="comment-thread">
+        <!-- Comments will be loaded here -->
+      </div>
+    `;
+    
+    main.appendChild(commentSection);
+    
+    // Reinitialize comments
+    setTimeout(initializeComments, 100);
+  }
+
   // Create comment element
   function createCommentElement(comment, commentId) {
     const commentDiv = document.createElement('div');
     commentDiv.className = 'comment';
     commentDiv.id = `comment-${commentId}`;
     
-    // Comment header with anonymous ID
+    // Comment header with anonymous ID and profile picture
     const header = document.createElement('div');
     header.className = 'comment-header';
+    
+    // Add profile picture
+    if (comment.profilePicture) {
+      const profilePic = document.createElement('img');
+      profilePic.className = 'comment-profile-pic';
+      profilePic.src = comment.profilePicture;
+      profilePic.alt = 'Profile';
+      header.appendChild(profilePic);
+    }
     
     const anonymousTag = document.createElement('span');
     anonymousTag.className = 'anonymous-tag';
@@ -220,6 +242,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const replyHeader = document.createElement('div');
         replyHeader.className = 'reply-header';
         
+        // Add profile picture for reply
+        if (reply.profilePicture) {
+          const replyProfilePic = document.createElement('img');
+          replyProfilePic.className = 'comment-profile-pic';
+          replyProfilePic.src = reply.profilePicture;
+          replyProfilePic.alt = 'Profile';
+          replyHeader.appendChild(replyProfilePic);
+        }
+        
         const replyAnonymousTag = document.createElement('span');
         replyAnonymousTag.className = 'anonymous-tag';
         replyAnonymousTag.textContent = `Anonymous (${reply.anonymousId})`;
@@ -262,142 +293,165 @@ document.addEventListener('DOMContentLoaded', function() {
     
     return commentDiv;
   }
-  
-  // Generate anonymous ID (similar to 4chan)
-  function generateAnonymousId() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let id = '';
-    for (let i = 0; i < 8; i++) {
-      id += chars.charAt(Math.floor(Math.random() * chars.length));
+
+  // Reply to comment function
+  window.replyToComment = async function(parentId) {
+    const replyText = document.getElementById(`reply-text-${parentId}`).value;
+    
+    if (!replyText.trim()) {
+      showError("Reply text cannot be empty");
+      return;
     }
-    return id;
-  }
-  
-  // Show error message
-  function showError(message) {
-    if (errorMessage) {
-      errorMessage.textContent = message;
-      errorMessage.style.display = 'block';
+    
+    try {
+      const anonymousId = generateAnonymousId();
       
-      // Hide after 3 seconds
-      setTimeout(() => {
-        errorMessage.style.display = 'none';
-      }, 3000);
-    } else {
-      alert(message);
+      // Get parent comment
+      const parentDoc = await commentsCollection.doc(parentId).get();
+      
+      if (parentDoc.exists) {
+        const parentData = parentDoc.data();
+        const replies = parentData.replies || [];
+        
+        // Add new reply
+        replies.push({
+          text: replyText.trim(),
+          anonymousId: anonymousId,
+          timestamp: new Date().toISOString(),
+          profilePicture: getRandomProfilePicture()
+        });
+        
+        // Update parent document
+        await commentsCollection.doc(parentId).update({ replies: replies });
+        
+        // Reload comments
+        loadComments();
+        
+        // Clear reply field
+        document.getElementById(`reply-text-${parentId}`).value = '';
+        
+      } else {
+        showError("Comment not found");
+      }
+    } catch (error) {
+      console.error("Error adding reply:", error);
+      showError("Failed to post reply. Please try again.");
     }
-  }
-});
+  };
+}
 
-// Add CSS to match 4chan style
-const style = document.createElement('style');
-style.textContent = `
-  .comment {
-    background-color: #f0e0d6;
-    border: 1px solid #d9bfb7;
-    border-radius: 2px;
-    margin-bottom: 20px;
-    padding: 10px;
+// Generate anonymous ID (similar to 4chan)
+function generateAnonymousId() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let id = '';
+  for (let i = 0; i < 8; i++) {
+    id += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  
-  .comment-header {
-    color: #117743;
-    font-weight: bold;
-    margin-bottom: 5px;
-  }
-  
-  .anonymous-tag {
-    margin-right: 10px;
-  }
-  
-  .timestamp {
-    color: #666;
-    font-size: 0.8em;
-  }
-  
-  .comment-content {
-    margin-bottom: 10px;
-  }
-  
-  .comment-image {
-    max-width: 200px;
-    max-height: 200px;
-    margin-bottom: 10px;
-    cursor: pointer;
-  }
-  
-  .comment-replies {
-    margin-left: 20px;
-    border-left: 2px solid #d9bfb7;
-    padding-left: 10px;
-  }
-  
-  .comment-reply {
-    background-color: #d6daf0;
-    border: 1px solid #b7c5d9;
-    border-radius: 2px;
-    margin-bottom: 10px;
-    padding: 8px;
-  }
-  
-  .reply-form textarea {
-    width: 100%;
-    padding: 5px;
-    margin-bottom: 5px;
-    min-height: 60px;
-  }
-  
-  .reply-form button {
-    background-color: #d6daf0;
-    border: 1px solid #b7c5d9;
-    border-radius: 2px;
-    cursor: pointer;
-    padding: 5px 10px;
-  }
-  
-  #comment-form {
-    background-color: #eef2ff;
-    border: 1px solid #b7c5d9;
-    border-radius: 2px;
-    margin-bottom: 20px;
-    padding: 10px;
-  }
-  
-  #comment-text {
-    width: 100%;
-    padding: 5px;
-    margin-bottom: 10px;
-    min-height: 100px;
-  }
-  
-  #error-message {
-    background-color: #f0d6d6;
-    border: 1px solid #d9b7b7;
-    color: #c00;
-    display: none;
-    margin-bottom: 10px;
-    padding: 10px;
-  }
-`;
-document.head.appendChild(style);
+  return id;
+}
 
-// HTML Structure (Add this to your HTML)
-/*
-<div class="comment-section">
-  <h2>Comments</h2>
+// Get random profile picture
+function getRandomProfilePicture() {
+  const pictures = [
+    'https://i.pravatar.cc/150?img=1',
+    'https://i.pravatar.cc/150?img=2',
+    'https://i.pravatar.cc/150?img=3',
+    'https://i.pravatar.cc/150?img=4',
+    'https://i.pravatar.cc/150?img=5',
+    'https://i.pravatar.cc/150?img=6',
+    'https://i.pravatar.cc/150?img=7',
+    'https://i.pravatar.cc/150?img=8'
+  ];
+  return pictures[Math.floor(Math.random() * pictures.length)];
+}
+
+// Show error message
+function showError(message) {
+  const errorMessage = document.getElementById('error-message');
+  if (errorMessage) {
+    errorMessage.textContent = message;
+    errorMessage.style.display = 'block';
+    
+    // Hide after 3 seconds
+    setTimeout(() => {
+      errorMessage.style.display = 'none';
+    }, 3000);
+  } else {
+    alert(message);
+  }
+}
+
+// Load Discord status via Lanyard API
+function loadDiscordStatus() {
+  if (!discordUserID || discordUserID === '554071670143451176') return;
   
-  <div id="error-message"></div>
+  fetch(`https://api.lanyard.rest/v1/554071670143451176/${discordUserID}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        discordStatusData = data.data;
+        updateDiscordStatus();
+      }
+    })
+    .catch(error => {
+      console.error("Error loading Discord status:", error);
+    });
+}
+
+// Set up Discord WebSocket for real-time updates
+function setupDiscordSocket() {
+  if (!discordUserID || discordUserID === '554071670143451176') return;
   
-  <form id="comment-form">
-    <textarea id="comment-text" placeholder="Write your comment here..."></textarea>
-    <div class="form-footer">
-      <input type="file" id="comment-file" accept="image/*">
-      <button type="submit">Post Comment</button>
-    </div>
-  </form>
+  const ws = new WebSocket('wss://api.lanyard.rest/socket');
   
-  <div id="comment-thread">
-    <!-- Comments will be loaded here -->
-  </div>
-</div>
-*/
+  ws.onopen = () => {
+    // Subscribe to Discord user ID updates
+    ws.send(JSON.stringify({
+      op: 2,
+      d: {
+        subscribe_to_id: discordUserID
+      }
+    }));
+  };
+  
+  ws.onmessage = event => {
+    const data = JSON.parse(event.data);
+    
+    // Handle heartbeat
+    if (data.op === 1) {
+      ws.send(JSON.stringify({
+        op: 3
+      }));
+    }
+    
+    // Handle presence update
+    if (data.op === 0 && data.t === 'PRESENCE_UPDATE' && data.d.user_id === discordUserID) {
+      discordStatusData = data.d;
+      updateDiscordStatus();
+    }
+  };
+  
+  ws.onclose = () => {
+    // Reconnect after 5 seconds
+    setTimeout(setupDiscordSocket, 5000);
+  };
+}
+
+// Update Discord status display
+function updateDiscordStatus() {
+  const statusElement = document.getElementById('discord-status');
+  if (!statusElement || !discordStatusData) return;
+  
+  // Clear previous content
+  statusElement.innerHTML = '';
+  
+  // Create status container
+  const statusContainer = document.createElement('div');
+  statusContainer.className = 'discord-status-container';
+  
+  // Add avatar
+  const avatar = document.createElement('img');
+  avatar.className = 'discord-avatar';
+  avatar.src = discordStatusData.discord_user?.avatar 
+    ? `https://cdn.discordapp.com/avatars/${discordUserID}/${discordStatusData.discord_user.avatar}.png?size=128`
+    : 'https://cdn.discordapp.com/
