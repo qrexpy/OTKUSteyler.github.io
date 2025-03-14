@@ -4,12 +4,13 @@ let discordStatusData = null;
 
 // Firebase configuration - Replace with your actual Firebase config
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
+  authDomain: "gustebook-aba1d.firebaseapp.com",
+  projectId: "gustebook-aba1d",
+  storageBucket: "gustebook-aba1d.firebasestorage.app",
+  messagingSenderId: "282519660063",
+  appId: "1:282519660063:web:d0ebdb62917160d4f6d72a",
+  measurementId: "G-15H56JYDZ0"
 };
 
 // Initialize Firebase
