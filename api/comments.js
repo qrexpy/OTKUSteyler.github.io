@@ -1,181 +1,91 @@
-// Complete Fixed Comments Module with CDN imports
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { 
-  getFirestore,
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
-  orderBy, 
-  serverTimestamp,
-  doc,
-  deleteDoc
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc, getDocs, serverTimestamp, query, orderBy } from "firebase/firestore";
 
-// Your Firebase configuration - replace with your actual Firebase project details
+// Your Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
-    authDomain: "gustebook-aba1d.firebaseapp.com",
-    projectId: "gustebook-aba1d",
-    storageBucket: "gustebook-aba1d.firebasestorage.app",
-    messagingSenderId: "282519660063",
-    appId: "1:282519660063:web:d0ebdb62917160d4f6d72a",
-    measurementId: "G-15H56JYDZ0"
+apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
+  authDomain: "gustebook-aba1d.firebaseapp.com",
+  projectId: "gustebook-aba1d",
+  storageBucket: "gustebook-aba1d.firebasestorage.app",
+  messagingSenderId: "282519660063",
+  appId: "1:282519660063:web:d0ebdb62917160d4f6d72a",
+  measurementId: "G-15H56JYDZ0"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Comments Collection Reference
-const commentsCollection = collection(db, "comments");
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-// Function to add a new comment
-async function addComment(name, message, pageId) {
-  try {
-    const docRef = await addDoc(commentsCollection, {
-      name: name,
-      message: message,
-      pageId: pageId,
-      timestamp: serverTimestamp()
-    });
-    console.log("Comment added with ID: ", docRef.id);
-    return { success: true, id: docRef.id };
-  } catch (error) {
-    console.error("Error adding comment: ", error);
-    return { success: false, error: error.message };
+  // Handle preflight OPTIONS request
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
-}
 
-// Function to get all comments for a specific page
-async function getComments(pageId) {
-  try {
-    const q = query(
-      commentsCollection,
-      orderBy("timestamp", "desc")
-    );
-    
-    const querySnapshot = await getDocs(q);
-    const comments = [];
-    
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      // Only include comments for the current page
-      if (data.pageId === pageId) {
-        comments.push({
-          id: doc.id,
-          name: data.name,
-          message: data.message,
-          timestamp: data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : "Just now"
-        });
+  if (req.method === 'POST') {
+    try {
+      const { name, comment, page } = req.body;
+      
+      // Validate required fields - email is not required
+      if (!name || !comment || !page) {
+        return res.status(400).json({ error: 'Name, comment, and page are required' });
       }
-    });
-    
-    return comments;
-  } catch (error) {
-    console.error("Error getting comments: ", error);
-    return [];
-  }
-}
-
-// Function to delete a comment (optional - for moderation)
-async function deleteComment(commentId) {
-  try {
-    await deleteDoc(doc(db, "comments", commentId));
-    return { success: true };
-  } catch (error) {
-    console.error("Error deleting comment: ", error);
-    return { success: false, error: error.message };
-  }
-}
-
-// Function to initialize the comments section
-function initComments(containerId, pageId) {
-  const container = document.getElementById(containerId);
-  if (!container) {
-    console.error("Comment container not found");
-    return;
-  }
-  
-  // Create comment form
-  const formHtml = `
-    <div class="comment-form">
-      <h3>Leave a Comment</h3>
-      <div class="form-group">
-        <input type="text" id="comment-name" placeholder="Your Name" required>
-      </div>
-      <div class="form-group">
-        <textarea id="comment-message" placeholder="Your Comment" required></textarea>
-      </div>
-      <button id="submit-comment">Submit</button>
-    </div>
-    <div class="comments-list">
-      <h3>Comments</h3>
-      <div id="comments-container"></div>
-    </div>
-  `;
-  
-  container.innerHTML = formHtml;
-  
-  // Add event listener to submit button
-  document.getElementById("submit-comment").addEventListener("click", async () => {
-    const nameInput = document.getElementById("comment-name");
-    const messageInput = document.getElementById("comment-message");
-    
-    const name = nameInput.value.trim();
-    const message = messageInput.value.trim();
-    
-    if (name && message) {
-      const result = await addComment(name, message, pageId);
-      if (result.success) {
-        // Clear form fields
-        nameInput.value = "";
-        messageInput.value = "";
-        
-        // Refresh comments
-        await loadComments(pageId);
-      }
-    } else {
-      alert("Please fill in all fields");
+      
+      // Add new comment to Firestore without requiring email
+      const docRef = await addDoc(collection(db, "comments"), {
+        name,
+        comment,
+        page,
+        createdAt: serverTimestamp()
+      });
+      
+      res.status(201).json({ id: docRef.id, message: 'Comment added successfully' });
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      res.status(500).json({ error: 'Failed to add comment' });
     }
-  });
-  
-  // Load initial comments
-  loadComments(pageId);
-}
-
-// Function to display comments
-async function loadComments(pageId) {
-  const commentsContainer = document.getElementById("comments-container");
-  if (!commentsContainer) return;
-  
-  commentsContainer.innerHTML = "Loading comments...";
-  
-  const comments = await getComments(pageId);
-  
-  if (comments.length === 0) {
-    commentsContainer.innerHTML = "<p>No comments yet. Be the first to comment!</p>";
-    return;
+  } else if (req.method === 'GET') {
+    try {
+      const { page } = req.query;
+      
+      if (!page) {
+        return res.status(400).json({ error: 'Page parameter is required' });
+      }
+      
+      // Query comments for specific page, ordered by timestamp
+      const commentsQuery = query(
+        collection(db, "comments"), 
+        orderBy("createdAt", "desc")
+      );
+      
+      const querySnapshot = await getDocs(commentsQuery);
+      
+      // Filter for the specific page
+      const comments = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.page === page) {
+          comments.push({
+            id: doc.id,
+            name: data.name,
+            comment: data.comment,
+            createdAt: data.createdAt ? data.createdAt.toDate().toISOString() : new Date().toISOString()
+          });
+        }
+      });
+      
+      res.status(200).json(comments);
+    } catch (error) {
+      console.error('Error getting comments:', error);
+      res.status(500).json({ error: 'Failed to retrieve comments' });
+    }
+  } else {
+    res.setHeader('Allow', ['GET', 'POST']);
+    res.status(405).json({ error: `Method ${req.method} not allowed` });
   }
-  
-  let commentsHtml = "";
-  
-  comments.forEach(comment => {
-    commentsHtml += `
-      <div class="comment">
-        <div class="comment-header">
-          <strong>${comment.name}</strong>
-          <span class="comment-date">${comment.timestamp}</span>
-        </div>
-        <div class="comment-body">
-          ${comment.message}
-        </div>
-      </div>
-    `;
-  });
-  
-  commentsContainer.innerHTML = commentsHtml;
 }
-
-// Export functions
-export { initComments, addComment, getComments, deleteComment };
