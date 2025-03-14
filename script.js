@@ -24,7 +24,6 @@ const firebaseAnalytics = await import('https://www.gstatic.com/firebasejs/9.22.
     window.firebaseAnalytics = analytics;
     
     console.log("Firebase initialized successfully");
-    catch (error) 
     console.error("Firebase initialization error:", error);
     // Continue with the rest of the script even if Firebase fails
   }
