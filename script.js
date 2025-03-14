@@ -1,5 +1,5 @@
-const firebaseApp = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
-const firebaseAnalytics = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js');
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
     
     const { initializeApp } = firebaseApp;
     const { getAnalytics } = firebaseAnalytics;
