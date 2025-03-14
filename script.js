@@ -1,9 +1,5 @@
-// Firebase initialization using CDN approach
-document.addEventListener('DOMContentLoaded', async function() {
-  try {
-    // Load Firebase from CDN dynamically
-    const firebaseApp = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
-    const firebaseAnalytics = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js');
+const firebaseApp = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js');
+const firebaseAnalytics = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js');
     
     const { initializeApp } = firebaseApp;
     const { getAnalytics } = firebaseAnalytics;
