@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>'₊˚⊹♡</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <div class="bloom-container"></div>
+    <canvas id="starfield"></canvas>
+    <div class="retro-scanline"></div>
+
+    <div id="container">
+        <h1>⚡ chocomints'channel ⚡</h1>
+
+        <div class="top-section">
+            <div class="status-window">
+                <div class="status-content">
+                    <div class="avatar-section">
+                        <div class="avatar-container">
+                            <img class="avatar" id="userAvatar" alt="Discord Avatar">
+                            <div class="status-dot" id="statusDot"></div>
+                        </div>
+                        <div class="user-info">
+                            <div class="status-text">
+                                <span style="color: #888">> USER:</span><br>
+                                <span id="username"></span>
+                            </div>
+                            <div class="status-text">
+                                <span style="color: #888">> STATUS:</span><br>
+                                <span id="status"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="spotify-status" id="spotifyContainer" style="display: none">
+                        <div class="status-text" style="margin-bottom: 10px;">
+                            <span style="color: #888">> NOW PLAYING:</span>
+                        </div>
+                        <div class="status-text" style="padding-left: 10px;">
+                            <span style="color: #888">TITLE:</span>
+                            <span id="spotifySong"></span>
+                        </div>
+                        <div class="status-text" style="padding-left: 10px;">
+                            <span style="color: #888">ARTIST:</span>
+                            <span id="spotifyArtist"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="win98-window">
+                <div class="win98-titlebar">
+                    <div style="display: flex; align-items: center;">
+                        <img class="win98-icon"
+                            src="https://cdn2.steamgriddb.com/icon/2b515e2bdd63b7f034269ad747c93a42/4/512x512.png"
+                            alt="Notepad icon">
+                        <span class="win98-titlebar-text">about.txt - Notepad</span>
+                    </div>
+                    <div class="win98-buttons">
+                        <div class="win98-button" style="font-size: 10px;">_</div>
+                        <div class="win98-button" style="font-size: 10px;">☐</div>
+                        <div class="win98-button" style="font-size: 10px;">×</div>
+                    </div>
+                </div>
+                <div class="win98-content">
+                    <p>
+                        18, italian, professional internet gremlin. if i'm not shitposting i'm being an annoying ass
+                        fucking bitch with horrible takes. extremely online and
+                        proud. Maybe gajorking it to exhaustion / rotting rn :P<br><br>I hve a fat gock ₊˚⊹♡
+                    </p>
+
+                    <pre>
+
+
+
+            MEOW
+      ／l、     
+    （ﾟ､ ｡ ７         
+      l  ~ヽ       
+      じしf_,)ノ
+                    </pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="file-system">
+            <div class="terminal-window">
+                <div class="fire-text" style="margin-bottom: 10px;">OBSESSIONS.TXT</div>
+                <ul class="file-list">
+                    <li><span class="file-name">GAMING.EXE</span> <span class="file-type">Epic Gaming</span></li>
+                    <li><span class="file-name">ART.PNG</span> <span class="file-type">Silly Art</span></li>
+                    <li><span class="file-name">HOMEWORK.MP4</span> <span class="file-type">Nyaaa</span></li>
+                    <li><span class="file-name">INDEX.HTML</span> <span class="file-type">World wide code stealer</span></li>
+                </ul>
+            </div>
+
+            <div class="terminal-window files-window">
+                <div class="fire-text" style="margin-bottom: 10px;">SYSTEM FILES</div>
+                <a href="https://github.com/OTKUSteyler" class="file-link">
+                    <span class="file-name">CODEBERG.SH</span>
+                    <span class="file-size">🖤 13.37 KB</span>
+                </a>
+                <a href="https://bsky.app/profile/did:plc:lt5y5ob6vvqghppwtddqlzej" class="file-link">
+                    <span class="file-name">BLUESKY.BAT</span>
+                    <span class="file-size">🦋 42.0 KB</span>
+                </a>
+                <a href="https://discord.com/users/554071670143451176" class="file-link">
+                    <span class="file-name">DISCORD.EXE</span>
+                    <span class="file-size">💬 69.0 KB</span>
+                </a>
+                <a href="mailto:qsanom@proton.me" class="file-link">
+                    <span class="file-name">EMAIL.COM</span>
+                    <span class="file-size">💌 1.44 MB</span>
+                </a>
+            </div>
+        </div>
+        <div class="file-system comments-section">
+            <div class="terminal-window">
+                <div class="fire-text" style="margin-bottom: 10px;">GUESTBOOK.TXT</div>
+                <div id="comments-list" class="comments-container">
+                    <!-- Comments will be loaded here -->
+                </div>
+            </div>
+
+            <div class="terminal-window">
+                <div class="fire-text" style="margin-bottom: 10px;">POST.EXE</div>
+                <form id="comment-form" class="comment-form">
+                    <input type="text" id="comment-name" placeholder="> ENTER YOUR NAME..." required>
+                    <textarea id="comment-text" placeholder="> TYPE YOUR MESSAGE..." required></textarea>
+                    <button type="submit" id="submit-comment">> POST COMMENT</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="visitor-counter">
+            <span id="visitor-count" class="text-green-500 font-mono">Visitors: ...</span>
+            <span style="color: #f0f;">█</span>
+        </div>
+
+        <div class="marquee-container">
+            <marquee scrollamount="3">
+                ★ SIGN MY GUESTBOOK! ★ ADD ME ON MSN! ★ IDK ANYMORE MAN ★
+                BEST VIEWED IN NETSCAPE NAVIGATOR ★ NO CREDIT CARD REQUIRED ★
+                100% FREE ★ DOWNLOAD MORE RAM ★
+            </marquee>
+        </div>
+    </div>
+    <div class="crt"></div>
+    <script type="module" src="js/script.js"></script>
+</body>
+
+</html>

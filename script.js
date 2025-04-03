@@ -1,7 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
     projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
@@ -98,48 +99,66 @@ drawStars();
 
 async function updateStatus() {
   try {
-    const response = await fetch(
-      "https://api.lanyard.rest/v1/users/554071670143451176"
-    );
+    const response = await fetch("https://api.lanyard.rest/v1/users/554071670143451176");
+    if (!response.ok) throw new Error('Failed to fetch status');
     const data = await response.json();
 
-    if (data.success) {
-      const avatarUrl = `https://cdn.discordapp.com/avatars/${data.data.discord_user.id}/${data.data.discord_user.avatar}`;
-      const avatarElement = document.getElementById("userAvatar");
+    if (!data.success) throw new Error('Invalid response');
+
+    const user = data.data.discord_user;
+    const avatarUrl = user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}` : 'https://cdn.discordapp.com/embed/avatars/0.png';
+    
+    const avatarElement = document.getElementById("userAvatar");
+    if (avatarElement) {
       avatarElement.src = avatarUrl;
+      avatarElement.style.opacity = data.data.discord_status === "dnd" ? "0.5" : "1";
+    }
 
-      document.getElementById("username").textContent = data.data.discord_user
-        .display_name
-        ? data.data.discord_user.display_name
-        : data.data.discord_user.username;
+    const usernameElement = document.getElementById("username");
+    if (usernameElement) {
+      usernameElement.textContent = user.display_name || user.global_name || user.username;
+    }
 
-      const status = data.data.discord_status;
-      document.getElementById("status").textContent = status.toUpperCase();
+    const statusElement = document.getElementById("status");
+    if (statusElement) {
+      statusElement.textContent = data.data.discord_status.toUpperCase();
+    }
 
-      const statusColors = {
-        online: "lime",
-        idle: "#ffac00",
-        dnd: "red",
-        offline: "#747f8d",
-      };
+    const statusColors = {
+      online: "lime",
+      idle: "#ffac00",
+      dnd: "red",
+      offline: "#747f8d"
+    };
 
-      document.documentElement.style.setProperty(
-        "--status-color",
-        statusColors[status]
-      );
+    document.documentElement.style.setProperty("--status-color", statusColors[data.data.discord_status] || "#747f8d");
 
-      avatarElement.style.opacity = status === "offline" ? "0.5" : "1";
-
-      const spotifyContainer = document.getElementById("spotifyContainer");
-      if (data.data.listening_to_spotify) {
+    const spotifyContainer = document.getElementById("spotifyContainer");
+    if (spotifyContainer) {
+      if (data.data.listening_to_spotify && data.data.spotify) {
         spotifyContainer.style.display = "block";
-        document.getElementById("spotifySong").textContent =
-          data.data.spotify.song;
-        document.getElementById("spotifyArtist").textContent =
-          data.data.spotify.artist;
+        const songElement = document.getElementById("spotifySong");
+        const artistElement = document.getElementById("spotifyArtist");
+        if (songElement) songElement.textContent = data.data.spotify.song;
+        if (artistElement) artistElement.textContent = data.data.spotify.artist;
       } else {
         spotifyContainer.style.display = "none";
       }
+    }
+
+    const activityContainer = document.getElementById("activityContainer");
+    if (activityContainer && data.data.activities && data.data.activities.length > 0) {
+      const activity = data.data.activities[0];
+      activityContainer.style.display = "block";
+      const activityNameElement = document.getElementById("activityName");
+      const activityDetailsElement = document.getElementById("activityDetails");
+      const activityStateElement = document.getElementById("activityState");
+      
+      if (activityNameElement) activityNameElement.textContent = activity.name;
+      if (activityDetailsElement) activityDetailsElement.textContent = activity.details || "";
+      if (activityStateElement) activityStateElement.textContent = activity.state || "";
+    } else if (activityContainer) {
+      activityContainer.style.display = "none";
     }
   } catch (error) {
     console.error("Error fetching status:", error);
