@@ -1,12 +1,14 @@
-import { getAnalytics } from "firebase/analytics";
-const firebaseConfig = {
-  apiKey: "AIzaSyAE7SJVhS-FLBueWNAQxYA6Gi838YN55wU",
-  authDomain: "gustebook-aba1d.firebaseapp.com",
-  projectId: "gustebook-aba1d",
-  storageBucket: "gustebook-aba1d.firebasestorage.app",
-  messagingSenderId: "282519660063",
-  appId: "1:282519660063:web:d0ebdb62917160d4f6d72a",
-  measurementId: "G-15H56JYDZ0"
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 const app = initializeApp(firebaseConfig);
@@ -103,7 +105,7 @@ async function updateStatus() {
     const data = await response.json();
 
     if (data.success) {
-      const avatarUrl = `https://cdn.discordapp.com/avatars/${data.data.discord_user.id}/${data.data.discord_user.avatar}`;
+      const avatarUrl = https://cdn.discordapp.com/avatars/${data.data.discord_user.id}/${data.data.discord_user.avatar};
       const avatarElement = document.getElementById("userAvatar");
       avatarElement.src = avatarUrl;
 
@@ -379,7 +381,7 @@ class CommentsUI {
   updateButtonText(minutes) {
     if (!this.submitButton) return;
     this.submitButton.textContent =
-      minutes === 1 ? "> WAIT 1 MINUTE" : `> WAIT ${minutes} MINUTES`;
+      minutes === 1 ? "> WAIT 1 MINUTE" : > WAIT ${minutes} MINUTES;
   }
 
   updateRateLimitState({ isLimited, remainingMinutes }) {
@@ -411,7 +413,7 @@ class CommentsUI {
 
   updateVisitorCount(count) {
     if (this.visitorCounter) {
-      this.visitorCounter.textContent = `Visitors: ${count || "..."}`;
+      this.visitorCounter.textContent = Visitors: ${count || "..."};
     }
   }
 
