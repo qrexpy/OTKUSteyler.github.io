@@ -99,7 +99,7 @@ drawStars();
 async function updateStatus() {
   try {
     const response = await fetch(
-      "https://api.lanyard.rest/v1/users/238129566386749440"
+      "https://api.lanyard.rest/v1/users/554071670143451176"
     );
     const data = await response.json();
 
