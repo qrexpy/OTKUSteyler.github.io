@@ -46,6 +46,11 @@ jobs:
           # Copy package files
           cp package*.json dist/
 
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
   deploy:
     environment:
       name: github-pages
@@ -56,5 +61,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v3
-        with:
-          path: './dist' 
