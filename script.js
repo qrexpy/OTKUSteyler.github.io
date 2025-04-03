@@ -1,18 +1,17 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
-import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+const firebaseConfig = {
+  apiKey: "AIzaSyCr8wnbtkkrccn2QHkjDT4VY6mmSTBDMu8",
+  authDomain: "stoibio.firebaseapp.com",
+  projectId: "stoibio",
+  storageBucket: "stoibio.firebasestorage.app",
+  messagingSenderId: "732132267362",
+  appId: "1:732132267362:web:7b0692476e9ed89d1dc83b",
 };
 
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+export const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
 
 setInterval(() => {
   const cursors = document.querySelectorAll('[style*="color: #0f0;"]');
@@ -100,12 +99,12 @@ drawStars();
 async function updateStatus() {
   try {
     const response = await fetch(
-      "https://api.lanyard.rest/v1/users/554071670143451176"
+      "https://api.lanyard.rest/v1/users/238129566386749440"
     );
     const data = await response.json();
 
     if (data.success) {
-      const avatarUrl = https://cdn.discordapp.com/avatars/${data.data.discord_user.id}/${data.data.discord_user.avatar};
+      const avatarUrl = `https://cdn.discordapp.com/avatars/${data.data.discord_user.id}/${data.data.discord_user.avatar}`;
       const avatarElement = document.getElementById("userAvatar");
       avatarElement.src = avatarUrl;
 
@@ -381,7 +380,7 @@ class CommentsUI {
   updateButtonText(minutes) {
     if (!this.submitButton) return;
     this.submitButton.textContent =
-      minutes === 1 ? "> WAIT 1 MINUTE" : > WAIT ${minutes} MINUTES;
+      minutes === 1 ? "> WAIT 1 MINUTE" : `> WAIT ${minutes} MINUTES`;
   }
 
   updateRateLimitState({ isLimited, remainingMinutes }) {
@@ -413,7 +412,7 @@ class CommentsUI {
 
   updateVisitorCount(count) {
     if (this.visitorCounter) {
-      this.visitorCounter.textContent = Visitors: ${count || "..."};
+      this.visitorCounter.textContent = `Visitors: ${count || "..."}`;
     }
   }
 
